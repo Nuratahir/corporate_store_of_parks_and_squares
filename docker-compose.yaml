@@ -1,0 +1,20 @@
+services:
+  pg:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${PG_DB}
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      PGDATA: /var/lib/postgresql/17/docker
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql
+
+  app:
+    build:
+      dockerfile: docker-build/app/Dockerfile
+      context: ./
+
+volumes:
+  pg_data:
