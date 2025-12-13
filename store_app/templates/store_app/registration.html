@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <title>Регистрация</title>
+
+    <style>
+        body {
+            background: #f2f2f2;
+        }
+        .register-box {
+            width: 450px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+        }
+        .register-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="register-box">
+    <div class="register-title">Регистрация</div>
+
+    <div class="mb-3">
+        <label class="form-label">Фамилия:</label>
+        <input type="text" class="form-control" placeholder="Введите фамилию">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Имя:</label>
+        <input type="text" class="form-control" placeholder="Введите имя">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Почта:</label>
+        <input type="email" class="form-control" placeholder="Введите почту">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Пароль:</label>
+        <input type="password" class="form-control" placeholder="Введите пароль">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Повторите пароль:</label>
+        <input type="password" class="form-control" placeholder="Повторите пароль">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Отдел:</label>
+        <input type="text" class="form-control" placeholder="Введите отдел">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Должность:</label>
+        <input type="text" class="form-control" placeholder="Введите должность">
+    </div>
+
+    <button class="btn btn-success w-100">Зарегистрироваться</button>
+
+    <div class="text-center mt-3">
+        <a href="{% url 'login' %}">Уже есть аккаунт? Войти</a>
+    </div>
+</div>
+
+</body>
+</html>

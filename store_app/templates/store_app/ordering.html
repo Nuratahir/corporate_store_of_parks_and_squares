@@ -1,0 +1,189 @@
+{% extends 'store_app/base.html' %}
+
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+
+<style>
+    .popup-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.4);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .popup-window {
+        background: #fff;
+        padding: 25px;
+        border-radius: 10px;
+        width: 300px;
+        text-align: center;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    .choice-box {
+        padding: 12px;
+        margin-top: 10px;
+        background: #f2f2f2;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .choice-box:hover {
+        background: #e2e2e2;
+    }
+</style>
+
+<!-- КОНТЕЙНЕР -->
+<div class="container mt-5">
+
+    <h2 class="text-center mb-5">Оформление заказа</h2>
+А
+    <!-- ТОВАР -->
+    <div id="order-item" class="row mb-5 align-items-center">
+
+
+        <!-- КАРТИНКА -->
+        <div class="col-md-4 text-center">
+            <div class="product-card">Товар 1</div>
+        </div>
+
+        <!-- ОПИСАНИЕ -->
+        <div class="col-md-6">
+            <h4>Название товара 1</h4>
+            <p>Описание товара. Очень интересный текст...</p>
+
+            <!-- КОЛИЧЕСТВО -->
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <button class="btn btn-secondary" onclick="changeCount(-1)">–</button>
+                <span id="count" style="font-size:20px;">1</span>
+                <button class="btn btn-secondary" onclick="changeCount(1)">+</button>
+            </div>
+
+            <!-- УДАЛИТЬ -->
+            <button class="btn btn-danger" onclick="deleteItem()">Удалить</button>
+        </div>
+
+    </div>
+
+    <hr>
+
+    <!-- КНОПКИ ВНИЗУ -->
+    <div class="mt-4 text-center">
+
+        <a href="/" class="btn btn-outline-primary me-3">Продолжить покупки</a>
+
+        <button id="checkoutBtn" class="btn btn-success me-3 disabled-btn" onclick="openPopup()">
+            Оформить
+        </button>
+
+        <!-- ВЫБОР ДЛЯ СЕБЯ / ПОДАРОК -->
+        <button class="btn btn-outline-secondary" onclick="openChoice()">Тип покупки</button>
+
+    </div>
+
+</div>
+
+
+<!-- ВСПЛЫВАЮЩИЙ ВЫБОР ТИПА ПОКУПКИ -->
+<div id="choicePopup" class="popup-bg" onclick="closeChoice(event)">
+    <div class="popup-window">
+        <h5>Выберите тип:</h5>
+        <div class="mt-3">
+            <div class="choice-box" onclick="setType('self')">Для себя</div>
+            <div class="choice-box" onclick="setType('gift')">Подарок</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ВСПЛЫВАЮЩЕЕ ОКНО ДЛЯ ВВОДА ДАННЫХ -->
+<div id="formPopup" class="popup-bg" onclick="closeForm(event)">
+    <div class="popup-window">
+
+        <h5>Заполнение заказа</h5>
+
+        <input id="fio" class="form-control mt-3" placeholder="ФИО">
+        <input id="email" class="form-control mt-3" placeholder="Почта">
+        <input id="dept" class="form-control mt-3" placeholder="Отдел">
+        <input id="role" class="form-control mt-3" placeholder="Должность">
+
+        <button id="finishBtn" class="btn btn-primary mt-3 disabled-btn" onclick="finishOrder()">Готово</button>
+
+    </div>
+</div>
+
+<script>
+    // КОЛИЧЕСТВО
+    function changeCount(delta) {
+        let c = document.getElementById("count");
+        let val = parseInt(c.textContent) + delta;
+        if (val < 1) val = 1;
+        c.textContent = val;
+    }
+
+    // УДАЛИТЬ
+    function deleteItem() {
+        const item = document.getElementById("order-item");
+    item.remove();
+
+    }
+
+
+    // ВЫБОР ТИПА
+    let typeSelected = false;
+
+    function openChoice() {
+        document.getElementById("choicePopup").style.display = "flex";
+    }
+
+    function closeChoice(e) {
+        if (e.target === e.currentTarget)
+            document.getElementById("choicePopup").style.display = "none";
+    }
+
+    function setType(type) {
+        typeSelected = true;
+        document.getElementById("checkoutBtn").classList.remove("disabled-btn");
+        document.getElementById("choicePopup").style.display = "none";
+    }
+
+
+    // ОКНО ДАННЫХ
+    function openPopup() {
+        document.getElementById("formPopup").style.display = "flex";
+    }
+
+    function closeForm(e) {
+        if (e.target === e.currentTarget)
+            document.getElementById("formPopup").style.display = "none";
+    }
+
+    // АКТИВАЦИЯ КНОПКИ "ГОТОВО"
+    document.addEventListener("input", function() {
+        let fio = document.getElementById("fio").value.trim();
+        let email = document.getElementById("email").value.trim();
+        let dept = document.getElementById("dept").value.trim();
+        let role = document.getElementById("role").value.trim();
+
+        let finish = document.getElementById("finishBtn");
+
+        if (fio && email && dept && role) {
+            finish.classList.remove("disabled-btn");
+        } else {
+            finish.classList.add("disabled-btn");
+        }
+    });
+
+    // ГОТОВО
+    function finishOrder() {
+        document.location.href = "/";
+    }
+</script>
+{% endblock %}

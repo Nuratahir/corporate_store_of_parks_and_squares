@@ -1,0 +1,61 @@
+{% extends 'store_app/base.html' %}
+
+{% block title %}Интернет-магазин{% endblock %}
+
+{% block content %}
+    <main>
+        <!-- ОПИСАНИЕ САЙТА -->
+        <div class="container mt-5 text-center">
+            <h1>ОПИСАНИЕ САЙТА — ......</h1>
+        </div>
+
+        <!-- ТОВАРЫ -->
+        <div id="products" class="container mt-5">
+            <div class="row justify-content-center gap-4">
+
+                <!-- Товар 1 -->
+                <div class="product-wrapper col-md-3">
+                    <div class="product-card">Товар 1</div>
+
+                    <div class="product-control">
+                        <button class="btn btn-secondary" onclick="changeCount(1, -1)">–</button>
+                        <span id="count1">0</span>
+                        <button class="btn btn-secondary" onclick="changeCount(1, 1)">+</button>
+                    </div>
+
+                    <a id="buy1" href="{% url 'ordering' %}" class="btn btn-success mt-3 disabled-btn">Оформить</a>
+
+                </div>
+
+                <!-- Товар 2 -->
+                <div class="product-wrapper col-md-3">
+                    <div class="product-card">Товар 2</div>
+
+                    <div class="product-control">
+                        <button class="btn btn-secondary" onclick="changeCount(2, -1)">–</button>
+                        <span id="count2">0</span>
+                        <button class="btn btn-secondary" onclick="changeCount(2, 1)">+</button>
+                    </div>
+
+                    <a id="buy2" href="{% url 'ordering' %}" class="btn btn-success mt-3 disabled-btn">Оформить</a>
+
+                </div>
+
+                <!-- Товар 3 -->
+                <div class="product-wrapper col-md-3">
+                    <div class="product-card">Товар 3</div>
+
+                    <div class="product-control">
+                        <button class="btn btn-secondary" onclick="changeCount(3, -1)">–</button>
+                        <span id="count3">0</span>
+                        <button class="btn btn-secondary" onclick="changeCount(3, 1)">+</button>
+                    </div>
+
+                        <a id="buy3" href="{% url 'ordering' %}" class="btn btn-success mt-3 disabled-btn">Оформить</a>
+                </div>
+
+            </div>
+        </div>
+
+    </main>>
+{% endblock %}

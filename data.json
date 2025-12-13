@@ -1,0 +1,94 @@
+[
+  {
+    "model": "store_app.employee",
+    "pk": 1,
+    "fields": {
+      "first_name": "Ivan",
+      "last_name": "Petrov",
+      "email": "ivan@mail.com",
+      "department": "IT",
+      "position": "Developer"
+    }
+  },
+  {
+    "model": "store_app.employee",
+    "pk": 2,
+    "fields": {
+      "first_name": "Anna",
+      "last_name": "Smirnova",
+      "email": "anna@mail.com",
+      "department": "HR",
+      "position": "Manager"
+    }
+  },
+
+  {
+    "model": "store_app.product",
+    "pk": 1,
+    "fields": {
+      "name_product": "Mouse",
+      "price": 25.5
+    }
+  },
+  {
+    "model": "store_app.product",
+    "pk": 2,
+    "fields": {
+      "name_product": "Keyboard",
+      "price": 40.0
+    }
+  },
+  {
+    "model": "store_app.product",
+    "pk": 3,
+    "fields": {
+      "name_product": "WebCam",
+      "price": 75.0
+    }
+  },
+
+  {
+    "model": "store_app.order",
+    "pk": 1,
+    "fields": {
+      "employee": 1,
+      "order_date": "2024-01-01T12:00:00Z"
+    }
+  },
+  {
+    "model": "store_app.order",
+    "pk": 2,
+    "fields": {
+      "employee": 1,
+      "order_date": "2024-01-01T12:05:00Z"
+    }
+  },
+
+  {
+    "model": "store_app.orderitem",
+    "pk": 1,
+    "fields": {
+      "order": 1,
+      "product": 1,
+      "quantity": 2
+    }
+  },
+  {
+    "model": "store_app.orderitem",
+    "pk": 2,
+    "fields": {
+      "order": 1,
+      "product": 2,
+      "quantity": 1
+    }
+  },
+  {
+    "model": "store_app.orderitem",
+    "pk": 3,
+    "fields": {
+      "order": 2,
+      "product": 3,
+      "quantity": 1
+    }
+  }
+]
