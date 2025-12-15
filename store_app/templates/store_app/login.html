@@ -33,17 +33,23 @@
 <div class="login-box">
     <div class="login-title">Вход в систему</div>
 
-    <div class="mb-3">
-        <label class="form-label">Почта:</label>
-        <input type="email" class="form-control" placeholder="Введите почту">
-    </div>
+    <form method="post">
+        {% csrf_token %}
 
-    <div class="mb-3">
-        <label class="form-label">Пароль:</label>
-        <input type="password" class="form-control" placeholder="Введите пароль">
-    </div>
+        <div class="mb-3">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+        </div>
 
-    <button class="btn btn-primary w-100">Войти</button>
+        <div class="mb-3">
+            {{ form.password.label_tag }}
+            {{ form.password }}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">
+            Войти
+        </button>
+    </form>
 
     <div class="text-center mt-3">
         <a href="{% url 'registration' %}">Регистрация</a>

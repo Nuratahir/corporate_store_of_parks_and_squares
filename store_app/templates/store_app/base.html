@@ -58,8 +58,14 @@
 
         <!-- ПРАВО -->
         <div>
-            <a class="nav-link d-inline" href="{% url 'login' %}">Вход</a> |
-            <a class="nav-link d-inline" href="{% url 'registration' %}">Регистрация</a>
+            {% if employee %}
+                <a class="nav-link d-inline" href="{% url 'personal_account' %}">
+                    {{ employee.first_name }} {{ employee.last_name }}
+                </a>
+            {% else %}
+                <a class="nav-link d-inline" href="{% url 'login' %}">Вход</a> |
+                <a class="nav-link d-inline" href="{% url 'registration' %}">Регистрация</a>
+            {% endif %}
         </div>
 
     </div>

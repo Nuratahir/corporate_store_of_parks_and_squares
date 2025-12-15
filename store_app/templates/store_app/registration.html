@@ -33,42 +33,11 @@
 <div class="register-box">
     <div class="register-title">Регистрация</div>
 
-    <div class="mb-3">
-        <label class="form-label">Фамилия:</label>
-        <input type="text" class="form-control" placeholder="Введите фамилию">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Имя:</label>
-        <input type="text" class="form-control" placeholder="Введите имя">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Почта:</label>
-        <input type="email" class="form-control" placeholder="Введите почту">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Пароль:</label>
-        <input type="password" class="form-control" placeholder="Введите пароль">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Повторите пароль:</label>
-        <input type="password" class="form-control" placeholder="Повторите пароль">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Отдел:</label>
-        <input type="text" class="form-control" placeholder="Введите отдел">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Должность:</label>
-        <input type="text" class="form-control" placeholder="Введите должность">
-    </div>
-
-    <button class="btn btn-success w-100">Зарегистрироваться</button>
+    <form method="post" class="mb-3" >
+            {% csrf_token %}
+            {{ form }}
+            <button class="btn btn-success w-100">Зарегистрироваться</button>
+    </form>
 
     <div class="text-center mt-3">
         <a href="{% url 'login' %}">Уже есть аккаунт? Войти</a>
