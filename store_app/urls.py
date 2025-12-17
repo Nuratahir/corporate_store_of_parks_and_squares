@@ -5,7 +5,7 @@ from .views import (
     personal_account,
     login,
     registration,
-    logout
+    logout,
 )
 
 urlpatterns = [
@@ -14,5 +14,5 @@ urlpatterns = [
     path("lk/", personal_account, name="personal_account"),
     path("login/", login, name="login"),
     path("registration/", registration, name="registration"),
-    path("logout/", logout, name="logout")
+    path("logout/", logout, name="logout"),
 ]

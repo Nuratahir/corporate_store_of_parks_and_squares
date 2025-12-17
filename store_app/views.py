@@ -1,7 +1,9 @@
-from django.shortcuts import render, redirect
+from itertools import product
+
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from .forms import RegisterForm, LoginForm
-from .models import Employee
+from .models import Employee, Product, Order, OrderItem
 
 
 def start_page(request):
@@ -11,10 +13,17 @@ def start_page(request):
     if employee_id:
         employee = Employee.objects.get(id=employee_id)
 
+    products = Product.objects.all()
+
+    context = {
+        "employee": employee,
+        "products": products,
+    }
+
     return render(
         request,
         "store_app/start_page.html",
-        {"employee": employee},
+        context=context,
     )
 
 
@@ -35,6 +44,7 @@ def personal_account(request):
         "store_app/personal_account.html",
         {"employee": employee},
     )
+
 
 def logout(request):
     request.session.pop("employee_id", None)
