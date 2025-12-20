@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.core.validators import MinLengthValidator
 
@@ -30,20 +31,42 @@ class Product(models.Model):
 class Order(models.Model):
     """Заказ"""
 
+    # Статусы заказа
+    STATUS_CART = "cart"
+    STATUS_ORDERED = "ordered"
+    STATUS_CHOICES = [
+        (STATUS_CART, "Корзина"),
+        (STATUS_ORDERED, "Оформлен"),
+    ]
+
     employee = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
         related_name="orders",
     )
 
-    order_date = models.DateTimeField(auto_now_add=True)
+    order_date = models.DateTimeField(default=timezone.now)
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_CART,
+    )
 
     def __str__(self):
         return f"Order #{self.id} by {self.employee.first_name}"
 
+    @property
+    def total_price(self):
+        """Сумма всех товаров в заказе"""
+        total = 0
+        for item in self.items.all():
+            total += item.product.price * item.quantity
+        return total
+
 
 class OrderItem(models.Model):
-    """Связь между заказом и товаром. Позиция в заказе: товар + количество """
+    """Связь между заказом и товаром. Позиция в заказе: товар + количество"""
 
     order = models.ForeignKey(
         Order,

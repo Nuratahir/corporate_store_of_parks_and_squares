@@ -6,11 +6,12 @@ from .views import (
     login,
     registration,
     logout,
+    add_to_cart,
 )
 
 urlpatterns = [
     path("", start_page, name="start_page"),
-    path("ordering/", ordering, name="ordering"),
+    path("ordering/", add_to_cart, name="ordering"),
     path("lk/", personal_account, name="personal_account"),
     path("login/", login, name="login"),
     path("registration/", registration, name="registration"),

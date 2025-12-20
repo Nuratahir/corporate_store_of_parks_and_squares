@@ -5,185 +5,166 @@
 {% block content %}
 
 <style>
-    .popup-bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.4);
-        display: none;
+    .product-card {
+        width: 150px;
+        height: 150px;
+        background: #eaeaea;
+        border-radius: 10px;
+        display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 9999;
-    }
-
-    .popup-window {
-        background: #fff;
-        padding: 25px;
-        border-radius: 10px;
-        width: 300px;
-        text-align: center;
-        box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-
-    .choice-box {
-        padding: 12px;
-        margin-top: 10px;
-        background: #f2f2f2;
-        border-radius: 8px;
-        cursor: pointer;
-    }
-
-    .choice-box:hover {
-        background: #e2e2e2;
+        margin: 0 auto;
     }
 </style>
 
-<!-- КОНТЕЙНЕР -->
 <div class="container mt-5">
-
     <h2 class="text-center mb-5">Оформление заказа</h2>
-А
-    <!-- ТОВАР -->
-    <div id="order-item" class="row mb-5 align-items-center">
 
-
-        <!-- КАРТИНКА -->
-        <div class="col-md-4 text-center">
-            <div class="product-card">Товар 1</div>
-        </div>
-
-        <!-- ОПИСАНИЕ -->
-        <div class="col-md-6">
-            <h4>Название товара 1</h4>
-            <p>Описание товара. Очень интересный текст...</p>
-
-            <!-- КОЛИЧЕСТВО -->
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <button class="btn btn-secondary" onclick="changeCount(-1)">–</button>
-                <span id="count" style="font-size:20px;">1</span>
-                <button class="btn btn-secondary" onclick="changeCount(1)">+</button>
+    {% if order %}
+        <!-- СПИСОК ТОВАРОВ -->
+        {% for item in order_items %}
+        <div class="order-item row mb-4 align-items-center border-bottom pb-4">
+            <div class="col-md-3 text-center">
+                <div class="product-card">
+                    {{ item.product.name_product|slice:":10" }}{% if item.product.name_product|length > 10 %}...{% endif %}
+                </div>
             </div>
 
-            <!-- УДАЛИТЬ -->
-            <button class="btn btn-danger" onclick="deleteItem()">Удалить</button>
+            <div class="col-md-6">
+                <h5>{{ item.product.name_product }}</h5>
+                <p class="text-muted small">
+                    Цена: {{ item.product.price }} ₽
+                </p>
+
+                <div class="d-flex align-items-center gap-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-outline-secondary"
+                                onclick="updateQuantity({{ item.id }}, -1)">–</button>
+                        <span class="fs-5">{{ item.quantity }}</span>
+                        <button class="btn btn-sm btn-outline-secondary"
+                                onclick="updateQuantity({{ item.id }}, 1)">+</button>
+                    </div>
+
+                    <div class="ms-4">
+                        <strong>Сумма:
+                            <span class="text-success">
+                                {{ item.product.price }} × {{ item.quantity }} =
+                                {{ item.product.price|floatformat:2|add:0|mul:item.quantity|floatformat:2 }} ₽
+                            </span>
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-danger"
+                            onclick="removeItem({{ item.id }})">
+                        Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <!-- Если корзина пуста, но order существует -->
+        <div class="text-center py-3">
+            <p>Корзина пуста</p>
+        </div>
+        {% endfor %}
+
+        <!-- ИТОГО -->
+        <div class="row mt-5">
+            <div class="col-md-6 offset-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Итог заказа</h5>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Товаров:</span>
+                            <span>{{ order_items|length }} позиции</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Общая сумма:</strong>
+                            <strong class="text-success fs-4">
+                                {{ order.total_price }} ₽  <!-- ← ВОТ ОН! -->
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-    </div>
-
-    <hr>
-
-    <!-- КНОПКИ ВНИЗУ -->
-    <div class="mt-4 text-center">
-
-        <a href="/" class="btn btn-outline-primary me-3">Продолжить покупки</a>
-
-        <button id="checkoutBtn" class="btn btn-success me-3 disabled-btn" onclick="openPopup()">
-            Оформить
-        </button>
-
-        <!-- ВЫБОР ДЛЯ СЕБЯ / ПОДАРОК -->
-        <button class="btn btn-outline-secondary" onclick="openChoice()">Тип покупки</button>
-
-    </div>
-
-</div>
-
-
-<!-- ВСПЛЫВАЮЩИЙ ВЫБОР ТИПА ПОКУПКИ -->
-<div id="choicePopup" class="popup-bg" onclick="closeChoice(event)">
-    <div class="popup-window">
-        <h5>Выберите тип:</h5>
-        <div class="mt-3">
-            <div class="choice-box" onclick="setType('self')">Для себя</div>
-            <div class="choice-box" onclick="setType('gift')">Подарок</div>
+        <!-- ДАННЫЕ ПОЛЬЗОВАТЕЛЯ -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5>Данные получателя</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>ФИО:</strong> {{ employee.first_name }} {{ employee.last_name }}</p>
+                        <p><strong>Почта:</strong> {{ employee.email }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Отдел:</strong> {{ employee.department }}</p>
+                        <p><strong>Должность:</strong> {{ employee.position }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
+        <!-- КНОПКИ -->
+        <div class="mt-5 text-center">
+            <a href="{% url 'start_page' %}" class="btn btn-outline-primary me-3">
+                ← Добавить еще товары
+            </a>
 
-<!-- ВСПЛЫВАЮЩЕЕ ОКНО ДЛЯ ВВОДА ДАННЫХ -->
-<div id="formPopup" class="popup-bg" onclick="closeForm(event)">
-    <div class="popup-window">
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-lg">
+                    ✅ Подтвердить заказ на {{ order.total_price }} ₽
+                </button>
+            </form>
+        </div>
 
-        <h5>Заполнение заказа</h5>
-
-        <input id="fio" class="form-control mt-3" placeholder="ФИО">
-        <input id="email" class="form-control mt-3" placeholder="Почта">
-        <input id="dept" class="form-control mt-3" placeholder="Отдел">
-        <input id="role" class="form-control mt-3" placeholder="Должность">
-
-        <button id="finishBtn" class="btn btn-primary mt-3 disabled-btn" onclick="finishOrder()">Готово</button>
-
-    </div>
+    {% else %}
+        <!-- КОРЗИНА ПУСТА (вообще нет order) -->
+        <div class="text-center py-5">
+            <h3 class="text-muted">😔 Корзина пуста</h3>
+            <p class="mt-3">Вы еще не добавили товары в корзину</p>
+            <a href="{% url 'start_page' %}" class="btn btn-primary mt-3">
+                ← Вернуться к покупкам
+            </a>
+        </div>
+    {% endif %}
 </div>
 
 <script>
-    // КОЛИЧЕСТВО
-    function changeCount(delta) {
-        let c = document.getElementById("count");
-        let val = parseInt(c.textContent) + delta;
-        if (val < 1) val = 1;
-        c.textContent = val;
-    }
-
-    // УДАЛИТЬ
-    function deleteItem() {
-        const item = document.getElementById("order-item");
-    item.remove();
-
-    }
-
-
-    // ВЫБОР ТИПА
-    let typeSelected = false;
-
-    function openChoice() {
-        document.getElementById("choicePopup").style.display = "flex";
-    }
-
-    function closeChoice(e) {
-        if (e.target === e.currentTarget)
-            document.getElementById("choicePopup").style.display = "none";
-    }
-
-    function setType(type) {
-        typeSelected = true;
-        document.getElementById("checkoutBtn").classList.remove("disabled-btn");
-        document.getElementById("choicePopup").style.display = "none";
-    }
-
-
-    // ОКНО ДАННЫХ
-    function openPopup() {
-        document.getElementById("formPopup").style.display = "flex";
-    }
-
-    function closeForm(e) {
-        if (e.target === e.currentTarget)
-            document.getElementById("formPopup").style.display = "none";
-    }
-
-    // АКТИВАЦИЯ КНОПКИ "ГОТОВО"
-    document.addEventListener("input", function() {
-        let fio = document.getElementById("fio").value.trim();
-        let email = document.getElementById("email").value.trim();
-        let dept = document.getElementById("dept").value.trim();
-        let role = document.getElementById("role").value.trim();
-
-        let finish = document.getElementById("finishBtn");
-
-        if (fio && email && dept && role) {
-            finish.classList.remove("disabled-btn");
+function updateQuantity(itemId, delta) {
+    fetch(`/update-quantity/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({delta: delta})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
         } else {
-            finish.classList.add("disabled-btn");
+            alert('Ошибка: ' + data.message);
         }
     });
+}
 
-    // ГОТОВО
-    function finishOrder() {
-        document.location.href = "/";
+function removeItem(itemId) {
+    if (confirm('Удалить товар из корзины?')) {
+        fetch(`/remove-item/${itemId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(() => location.reload());
     }
+}
 </script>
 {% endblock %}

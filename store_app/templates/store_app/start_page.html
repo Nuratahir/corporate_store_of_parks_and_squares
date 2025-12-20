@@ -11,6 +11,7 @@
 
         <!-- ТОВАРЫ -->
         <div id="products" class="container mt-5">
+
             <div class="row justify-content-center gap-4">
 
                 {% for product in products %}
@@ -28,10 +29,71 @@
                             <span id="count{{ product.id }}">0</span>
                             <button class="btn btn-secondary" onclick="changeCount({{ product.id }},1)">+</button>
                     </div>
-                    <a id="buy{{ product.id }}" href="{% url 'ordering' %}" class="btn btn-success mt-3 disabled-btn">Оформить</a>
+
+                    <a id="buy{{ product.id }}" href="{% url 'ordering' %}"
+                        onclick="addToCart({{ product.id }}); return false;"
+                        class="btn btn-success mt-3 disabled-btn">
+                        В корзину
+                    </a>
+
                 </div>
+
                 {% endfor %}
+
             </div>
+
         </div>
+
     </main>
+
+    <script>
+         // Сбор данных, для передачи в заказ (Order)
+        function getCartData() {
+            let cart = {};
+            {% for product in products %}
+                let quantity = parseInt(document.getElementById('count{{ product.id }}').textContent);
+                if (quantity > 0) {
+                    cart[{{ product.id }}] = quantity;
+                }
+            {% endfor %}
+            return cart;
+        }
+
+            function addToCart(productId) {
+            let quantity = parseInt(document.getElementById('count' + productId).textContent);
+
+            if (quantity > 0) {
+                console.log('Добавляем в корзину:', productId, 'количество:', quantity);
+
+                // Отправка данных на сервер
+                fetch('/add-to-cart/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'  // Важно для Django!
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        quantity: quantity
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Товар добавлен в корзину!');
+                        // window.location.href = "{% url 'ordering' %}";
+                    } else {
+                        alert('Ошибка: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+            } else {
+                alert('Выберите количество товара!');
+            }
+        }
+
+    </script>
+
 {% endblock %}
