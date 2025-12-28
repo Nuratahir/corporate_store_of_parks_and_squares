@@ -3,97 +3,64 @@
 {% block title %}Интернет-магазин{% endblock %}
 
 {% block content %}
-    <main>
-        <!-- ОПИСАНИЕ САЙТА -->
-        <div class="container mt-5 text-center">
-            <h1>ОПИСАНИЕ САЙТА — ......</h1>
-        </div>
+<main>
+    <div class="container mt-5 text-center">
+        <h1>ОПИСАНИЕ САЙТА — ......</h1>
+    </div>
 
-        <!-- ТОВАРЫ -->
-        <div id="products" class="container mt-5">
-
-            <div class="row justify-content-center gap-4">
-
-                {% for product in products %}
-                <!-- Товары, которые я раскидываю путем цикла, можно не добавлять в ручную -->
-                <div class="product-wrapper col-md-3">
-
-                    <div class="product-card">
-                            <p> {{ product.name_product }} <br>
-                            <small>{{ product.price }} </small>
-                            </p>
-                    </div>
-
-                    <div class="product-control">
-                            <button class="btn btn-secondary" onclick="changeCount({{ product.id }},-1)">–</button>
-                            <span id="count{{ product.id }}">0</span>
-                            <button class="btn btn-secondary" onclick="changeCount({{ product.id }},1)">+</button>
-                    </div>
-
-                    <a id="buy{{ product.id }}" href="{% url 'ordering' %}"
-                        onclick="addToCart({{ product.id }}); return false;"
-                        class="btn btn-success mt-3 disabled-btn">
-                        В корзину
-                    </a>
-
+    <div id="products" class="container mt-5">
+        <div class="row justify-content-center gap-4">
+            {% for product in products %}
+            <div class="product-wrapper col-md-3">
+                <div class="product-card">
+                    <p>{{ product.name_product }}<br>
+                    <small>{{ product.price }} ₽</small></p>
                 </div>
 
-                {% endfor %}
+                <div class="product-control">
+                    <button class="btn btn-secondary" onclick="changeCount({{ product.id }}, -1)">–</button>
+                    <span id="count{{ product.id }}">0</span>
+                    <button class="btn btn-secondary" onclick="changeCount({{ product.id }}, 1)">+</button>
+                </div>
 
+                <!-- ИСПРАВЛЕННАЯ КНОПКА: ФОРМА вместо ссылки -->
+                <form method="post" action="{% url 'add_to_cart' %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id|stringformat:'i' }}">
+                    <input type="hidden" name="quantity" id="quantity{{ product.id }}" value="0">
+                    <button type="submit" id="buy{{ product.id }}"
+                            class="btn btn-success mt-3 disabled-btn">
+                        В корзину
+                    </button>
+                </form>
             </div>
-
-        </div>
-
-    </main>
-
-    <script>
-         // Сбор данных, для передачи в заказ (Order)
-        function getCartData() {
-            let cart = {};
-            {% for product in products %}
-                let quantity = parseInt(document.getElementById('count{{ product.id }}').textContent);
-                if (quantity > 0) {
-                    cart[{{ product.id }}] = quantity;
-                }
             {% endfor %}
-            return cart;
-        }
+        </div>
+    </div>
+</main>
 
-            function addToCart(productId) {
-            let quantity = parseInt(document.getElementById('count' + productId).textContent);
+<!-- ДОБАВЬ этот script в start_page.html (или обнови base.html) -->
+<script>
+// Функция должна обновлять и hidden поле тоже!
+function changeCount(id, delta) {
+    const countEl = document.getElementById("count" + id);
+    const quantityInput = document.getElementById("quantity" + id); // ← ВАЖНО!
+    const btn = document.getElementById("buy" + id);
 
-            if (quantity > 0) {
-                console.log('Добавляем в корзину:', productId, 'количество:', quantity);
+    let val = parseInt(countEl.textContent) + delta;
+    if (val < 0) val = 0;
 
-                // Отправка данных на сервер
-                fetch('/add-to-cart/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'  // Важно для Django!
-                    },
-                    body: JSON.stringify({
-                        product_id: productId,
-                        quantity: quantity
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Товар добавлен в корзину!');
-                        // window.location.href = "{% url 'ordering' %}";
-                    } else {
-                        alert('Ошибка: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                });
-            } else {
-                alert('Выберите количество товара!');
-            }
-        }
+    // Обновляем видимое число
+    countEl.textContent = val;
+    // Обновляем hidden поле формы
+    quantityInput.value = val;
 
-    </script>
-
+    // Активируем/деактивируем кнопку
+    if (val > 0) {
+        btn.classList.remove("disabled-btn");
+    } else {
+        btn.classList.add("disabled-btn");
+    }
+}
+</script>
 {% endblock %}

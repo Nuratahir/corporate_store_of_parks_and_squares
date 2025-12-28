@@ -52,6 +52,11 @@ class Order(models.Model):
         choices=STATUS_CHOICES,
         default=STATUS_CART,
     )
+    # добавлен столбец, для кого
+    for_whom = models.EmailField(
+        max_length=254,
+        default="",
+    )
 
     def __str__(self):
         return f"Order #{self.id} by {self.employee.first_name}"
@@ -81,6 +86,13 @@ class OrderItem(models.Model):
     )
 
     quantity = models.PositiveIntegerField()
+
+    @property
+    def item_total(self):
+        """Сумма за эту позицию (цена × количество)"""
+        if self.product.price:
+            return self.product.price * self.quantity
+        return 0
 
     def __str__(self):
         return f"{self.product.name_product} * {self.quantity}"

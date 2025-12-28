@@ -1,3 +1,6 @@
+import json
+
+from django.http import JsonResponse
 from django.utils import timezone
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -27,46 +30,85 @@ def start_page(request):
         context=context,
     )
 
+
+def update_quantity(request, item_id):
+    """Обновление количества товара в корзине"""
+    if request.method == "POST":
+        try:
+            delta = int(request.POST.get("delta", 0))  # ← из FormData
+            item = get_object_or_404(OrderItem, id=item_id)
+
+            new_quantity = item.quantity + delta
+            if new_quantity > 0:
+                item.quantity = new_quantity
+                item.save()
+            else:
+                item.delete()
+
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+
+def remove_item(request, item_id):
+    """Удаление товара из корзины"""
+    if request.method == "POST":
+        try:
+            item = get_object_or_404(OrderItem, id=item_id)
+            item.delete()
+            return JsonResponse({"success": True})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+
 def add_to_cart(request):
     """Добавляем в корзину товар и количество"""
     if request.method == "POST":
 
-        #Сначала получаем данные товара
+        # Сначала получаем данные товара
         product_id = request.POST.get("product_id")
         quantity = int(request.POST.get("quantity", 0))
 
-        #Проверка пользователя, чтоб он был
-        employee_id = request.session.get("employee_id")
-        if not employee_id:
-            messages.error(request, "Войдите в аккаунт")
-            return redirect("login")
+        # Проверка пользователя, чтоб он был
+        if quantity > 0:
+            employee_id = request.session.get("employee_id")
+            if not employee_id:
+                messages.error(request, "Войдите в аккаунт")
+                return redirect("login")
 
-        #Получаем объекты
-        employee = get_object_or_404(Employee, id=employee_id)
-        product = get_object_or_404(Product, id=product_id)
+            # Получаем объекты
+            employee = get_object_or_404(Employee, id=employee_id)
+            product = get_object_or_404(Product, id=product_id)
 
-        #Находим или создаем заказ в Order
-        order, created = Order.objects.get_or_create(
-            employee=employee,
-            status="Оформлен",
-            dafaults={"order_data": timezone.now()}
-        )
+            # Находим или создаем заказ в Order
+            order, created = Order.objects.get_or_create(
+                employee=employee,
+                status="cart",
+                defaults={"order_date": timezone.now()},
+            )
 
-        #Находим или создаем OrderItem связь количества товара, который мы добавили в заказ Order
-        order_item, created = OrderItem.objects.get_or_create(
-            order=order,
-            product=product_id,
-            defaults={"quantity": quantity}
-        )
+            # Находим или создаем OrderItem связь количества товара, который мы добавили в заказ Order
+            order_item, created = OrderItem.objects.get_or_create(
+                order=order, product=product, defaults={"quantity": quantity}
+            )
 
-        if not created:
-            #Если уже есть в корзине, просто обновляем количество
-            order_item.quantity = quantity
-            order_item.save()
+            if not created:
+                # если уже есть в корзине, что, либо просо добавляем количество!
+                order_item.quantity += quantity
+                order_item.save()
+                messages.success(
+                    request,
+                    f"Добавлено ещё {quantity} шт. товара '{product.name_product}'! "
+                    f"Теперь в корзине: {order_item.quantity} шт.",
+                )
+            else:
+                messages.success(
+                    request,
+                    f"Товар '{product.name_product}' добавлен в корзину! Количество: {quantity} шт.",
+                )
 
-        messages.success(request, f"Товар,{product.name_product}, добавлен в корзину! ")
-
-        return redirect("start_page")
+        else:
+            messages.warning(request, "Выберите количество товара!")
 
     return redirect("start_page")
 
@@ -78,17 +120,14 @@ def ordering(request):
     if not employee_id:
         return redirect("login")
 
-    #Получаем объект сотрудника для шаблона
+    # Получаем объект сотрудника для шаблона
     employee = get_object_or_404(Employee, id=employee_id)
 
     if request.method == "GET":
-        #Показываем корзину
+        # Показываем корзину
         try:
             # Находим корзину (order со статусом в корзине)
-            order = Order.objects.get(
-                employee_id=employee_id,
-                status='cart'
-            )
+            order = Order.objects.get(employee_id=employee_id, status="cart")
             # Получаем все товары через related_name=items
             order_items = order.items.all()
 
@@ -103,16 +142,13 @@ def ordering(request):
             "employee": employee,
         }
 
-        return render(request, "store_app/order.html", context)
+        return render(request, "store_app/ordering.html", context)
 
     elif request.method == "POST":
         # Оформляем заказ, с изменением статуса, с cart на ordered
         try:
             # Находим корзину пользователя
-            order = Order.objects.get(
-                employee_id=employee_id,
-                status='cart'
-            )
+            order = Order.objects.get(employee_id=employee_id, status="cart")
 
             # Проверяем, что в корзине есть товар
             if not order.items.exists():
@@ -124,8 +160,7 @@ def ordering(request):
             order.save()
 
             messages.success(
-                request,
-                f"✅ Заказ #{order.id} оформлен! Сумма: {order.total_price} ₽"
+                request, f"✅ Заказ #{order.id} оформлен! Сумма: {order.total_price} ₽"
             )
 
         except Order.DoesNotExist:
@@ -196,3 +231,8 @@ def registration(request):
 
     context = {"form": form}
     return render(request, "store_app/registration.html", context=context)
+
+
+def sending_recepient_data(request):
+    if request.method == "POST":
+        form = RecipientDetailsForm(request.POST)

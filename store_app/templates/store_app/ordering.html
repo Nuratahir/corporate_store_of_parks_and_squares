@@ -4,6 +4,24 @@
 
 {% block content %}
 
+<!--&lt;!&ndash; ОТЛАДОЧНЫЙ БЛОК (временно) &ndash;&gt;-->
+<!--<div class="container mt-3" style="background: #f8f9fa; padding: 15px; border-radius: 5px;">-->
+<!--    <h5>🔍 Отладка:</h5>-->
+<!--    <pre>-->
+<!--    employee_id из сессии: {{ request.session.employee_id|default:"НЕТ" }}-->
+<!--    employee объект: {{ employee|default:"НЕТ" }}-->
+<!--    employee.id: {{ employee.id|default:"НЕТ" }}-->
+<!--    employee.email: {{ employee.email|default:"НЕТ" }}-->
+<!--    order: {{ order|default:"НЕТ" }}-->
+<!--    order.id: {{ order.id|default:"НЕТ" }}-->
+<!--    order.status: {{ order.status|default:"НЕТ" }}-->
+<!--    order_items: {{ order_items|default:"НЕТ" }}-->
+<!--    order_items count: {{ order_items|length|default:"0" }}-->
+<!--    Время: {% now "H:i:s" %}-->
+<!--    </pre>-->
+<!--</div>-->
+<!--&lt;!&ndash; КОНЕЦ ОТЛАДКИ &ndash;&gt;-->
+
 <style>
     .product-card {
         width: 150px;
@@ -49,7 +67,7 @@
                         <strong>Сумма:
                             <span class="text-success">
                                 {{ item.product.price }} × {{ item.quantity }} =
-                                {{ item.product.price|floatformat:2|add:0|mul:item.quantity|floatformat:2 }} ₽
+                                {{ item.item_total|floatformat:2 }} ₽
                             </span>
                         </strong>
                     </div>
@@ -137,20 +155,22 @@
 
 <script>
 function updateQuantity(itemId, delta) {
+    const formData = new FormData();
+    formData.append('delta', delta);
+
     fetch(`/update-quantity/${itemId}/`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'X-CSRFToken': '{{ csrf_token }}'
         },
-        body: JSON.stringify({delta: delta})
+        body: formData
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            location.reload(); // или обновить только количество на странице
         } else {
-            alert('Ошибка: ' + data.message);
+            alert('Ошибка: ' + data.error);
         }
     });
 }
@@ -158,13 +178,19 @@ function updateQuantity(itemId, delta) {
 function removeItem(itemId) {
     if (confirm('Удалить товар из корзины?')) {
         fetch(`/remove-item/${itemId}/`, {
-            method: 'DELETE',
+            method: 'POST',  // используем POST
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}'
             }
         })
-        .then(() => location.reload());
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
     }
 }
+
 </script>
 {% endblock %}

@@ -90,21 +90,23 @@
 
     // Управление количеством
     function changeCount(id, delta) {
-        const countEl = document.getElementById("count" + id);
-        const btn = document.getElementById("buy" + id);
+    const countEl = document.getElementById("count" + id);
+    const quantityInput = document.getElementById("quantity" + id); // ← ДОБАВЬ ЭТУ СТРОКУ
+    const btn = document.getElementById("buy" + id);
 
-        let val = parseInt(countEl.textContent) + delta;
-        if (val < 0) val = 0;
+    let val = parseInt(countEl.textContent) + delta;
+    if (val < 0) val = 0;
 
-        countEl.textContent = val;
+    countEl.textContent = val;
+    quantityInput.value = val; // ← И ЭТУ СТРОКУ
 
-        if (val > 0) {
-            btn.classList.remove("disabled-btn");
-        } else {
-            btn.classList.add("disabled-btn");
-        }
-        return val
+    if (val > 0) {
+        btn.classList.remove("disabled-btn");
+    } else {
+        btn.classList.add("disabled-btn");
     }
+}
+
 </script>
 
 </body>
