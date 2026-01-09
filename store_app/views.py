@@ -198,10 +198,15 @@ def ordering(request):
             order = None
             order_items = []
 
+        # Получаем список ВСЕХ сотрудников (кроме текущего)
+        all_employees = (Employee.objects.exclude(id=employee_id)
+                         .order_by("first_name", "last_name"))
+
         context = {
             "order": order,
             "order_items": order_items,
             "employee": employee,
+            "all_employees": all_employees,
         }
 
         return render(request, "store_app/ordering.html", context)
@@ -217,12 +222,27 @@ def ordering(request):
                 messages.error(request, "Корзина пуста")
                 return redirect("start_page")
 
+            # Определяем получателя
+            recipient_type = request.POST.get("recipient_type", "self")
+            selected_email = request.POST.get("for_whom", "").strip()
+
+            recipient_msg = "для себя"
+
+            if recipient_type == "colleague" and selected_email:
+                # Для коллеги
+                order.for_whom = selected_email
+
+            else:
+                # Для себя
+                order.for_whom = ""
+                recipient_msg = "для себя"
+
             # Меняем статус с корзины cart на ordered
             order.status = "ordered"
             order.save()
 
             messages.success(
-                request, f"✅ Заказ #{order.id} оформлен! Сумма: {order.total_price} ₽"
+                request, f"✅ Заказ #{order.id} оформлен {recipient_msg}! Сумма: {order.total_price} ₽"
             )
 
             return redirect("personal_account")

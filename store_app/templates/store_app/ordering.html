@@ -4,23 +4,23 @@
 
 {% block content %}
 
-<!-- ОТЛАДОЧНЫЙ БЛОК (временно) -->
-<div class="container mt-3" style="background: #f8f9fa; padding: 15px; border-radius: 5px;">
-    <h5>🔍 Отладка:</h5>
-    <pre>
-    employee_id из сессии: {{ request.session.employee_id|default:"НЕТ" }}
-    employee объект: {{ employee|default:"НЕТ" }}
-    employee.id: {{ employee.id|default:"НЕТ" }}
-    employee.email: {{ employee.email|default:"НЕТ" }}
-    order: {{ order|default:"НЕТ" }}
-    order.id: {{ order.id|default:"НЕТ" }}
-    order.status: {{ order.status|default:"НЕТ" }}
-    order_items: {{ order_items|default:"НЕТ" }}
-    order_items count: {{ order_items|length|default:"0" }}
-    Время: {% now "H:i:s" %}
-    </pre>
-</div>
-<!-- КОНЕЦ ОТЛАДКИ -->
+<!--&lt;!&ndash; ОТЛАДОЧНЫЙ БЛОК (временно) &ndash;&gt;-->
+<!--<div class="container mt-3" style="background: #f8f9fa; padding: 15px; border-radius: 5px;">-->
+<!--    <h5>🔍 Отладка:</h5>-->
+<!--    <pre>-->
+<!--    employee_id из сессии: {{ request.session.employee_id|default:"НЕТ" }}-->
+<!--    employee объект: {{ employee|default:"НЕТ" }}-->
+<!--    employee.id: {{ employee.id|default:"НЕТ" }}-->
+<!--    employee.email: {{ employee.email|default:"НЕТ" }}-->
+<!--    order: {{ order|default:"НЕТ" }}-->
+<!--    order.id: {{ order.id|default:"НЕТ" }}-->
+<!--    order.status: {{ order.status|default:"НЕТ" }}-->
+<!--    order_items: {{ order_items|default:"НЕТ" }}-->
+<!--    order_items count: {{ order_items|length|default:"0" }}-->
+<!--    Время: {% now "H:i:s" %}-->
+<!--    </pre>-->
+<!--</div>-->
+<!--&lt;!&ndash; КОНЕЦ ОТЛАДКИ &ndash;&gt;-->
 
 <style>
     .product-card {
@@ -102,7 +102,7 @@
                         <div class="d-flex justify-content-between">
                             <strong>Общая сумма:</strong>
                             <strong class="text-success fs-4">
-                                {{ order.total_price }} ₽  <!-- ← ВОТ ОН! -->
+                                {{ order.total_price }} ₽
                             </strong>
                         </div>
                     </div>
@@ -113,7 +113,7 @@
         <!-- ДАННЫЕ ПОЛЬЗОВАТЕЛЯ -->
         <div class="card mt-4">
             <div class="card-body">
-                <h5>Данные получателя</h5>
+                <h5>Ваши данные</h5>
                 <div class="row">
                     <div class="col-md-6">
                         <p><strong>ФИО:</strong> {{ employee.first_name }} {{ employee.last_name }}</p>
@@ -127,30 +127,67 @@
             </div>
         </div>
 
-        <!-- КНОПКИ -->
-        <div class="mt-5 text-center bg-light p-4 rounded shadow">
-    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
-        <a href="{% url 'start_page' %}" class="btn btn-outline-primary btn-lg">
-            ← Добавить еще товары
-        </a>
+        <!-- ВЫБОР ПОЛУЧАТЕЛЯ И ФОРМА ОФОРМЛЕНИЯ -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5>🎁 Для кого заказ?</h5>
 
-        <div class="vr d-none d-md-block" style="height: 40px;"></div>
+                <form method="post">
+                    {% csrf_token %}
 
-        <form method="post" class="m-0">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-success btn-lg px-5 py-3">
-                <span class="fs-4">✅</span>
-                <span class="fw-bold">Подтвердить заказ</span>
-                <br>
-                <small>Сумма: {{ order.total_price }} ₽</small>
-            </button>
-        </form>
-    </div>
+                    <!-- Простые радио-кнопки -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="recipient_type"
+                                   id="for_self" value="self" checked>
+                            <label class="form-check-label" for="for_self">
+                                <strong>Для себя</strong> ({{ employee.email }})
+                            </label>
+                        </div>
 
-    <p class="text-muted mt-3">
-        После подтверждения статус заказа изменится с "Корзина" на "Оформлен"
-    </p>
-</div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="recipient_type"
+                                   id="for_colleague" value="colleague">
+                            <label class="form-check-label" for="for_colleague">
+                                <strong>Для коллеги</strong>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Простой select, всегда видим -->
+                    <div class="mb-3">
+                        <label class="form-label">Выберите коллегу из списка:</label>
+                        <select class="form-select" name="for_whom">
+                            <option value="">-- Выберите сотрудника --</option>
+                            {% for emp in all_employees %}
+                            <option value="{{ emp.email }}">
+                                {{ emp.first_name }} {{ emp.last_name }} - {{ emp.department }} ({{ emp.email }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Если оставить пустым, заказ будет оформлен для вас</div>
+                    </div>
+
+                    <!-- ЕДИНАЯ КНОПКА ОФОРМЛЕНИЯ -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-success btn-lg px-5 py-3">
+                            <span class="fs-4">✅</span>
+                            <span class="fw-bold">Подтвердить заказ</span>
+                            <br>
+                            <small>Сумма: {{ order.total_price }} ₽</small>
+                        </button>
+
+                        <p class="text-muted mt-3">
+                            После подтверждения статус заказа изменится с "Корзина" на "Оформлен"
+                        </p>
+
+                        <a href="{% url 'start_page' %}" class="btn btn-outline-primary mt-2">
+                            ← Вернуться к покупкам
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
 
     {% else %}
         <!-- КОРЗИНА ПУСТА (вообще нет order) -->
@@ -179,7 +216,7 @@ function updateQuantity(itemId, delta) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            location.reload(); // или обновить только количество на странице
+            location.reload();
         } else {
             alert('Ошибка: ' + data.error);
         }
@@ -189,19 +226,18 @@ function updateQuantity(itemId, delta) {
 function removeItem(itemId) {
     if (confirm('Удалить товар из корзины?')) {
         fetch(`/remove-item/${itemId}/`, {
-            method: 'POST',  // используем POST
+            method: 'POST',
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}'
             }
         })
         .then(response => response.json())
-        .then(data => {
+    .then(data => {
             if (data.success) {
                 location.reload();
             }
         });
     }
 }
-
 </script>
 {% endblock %}
