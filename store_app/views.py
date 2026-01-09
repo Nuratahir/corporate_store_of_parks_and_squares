@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 
 from .forms import RegisterForm, LoginForm
-from .models import Employee, Product, Order, OrderItem
+from .models import Employee, Product, Order, OrderItem, ChatMessage
 
 
 def start_page(request):
@@ -261,11 +261,48 @@ def personal_account(request):
 
     employee = Employee.objects.get(id=employee_id)
 
+    # Получаем ВСЕ заказы сотрудника, кроме корзин (только оформленные заказы)
+    orders = Order.objects.filter(
+        employee=employee,
+        status=Order.STATUS_ORDERED,  # только оформленные заказы
+    ).order_by(
+        "-order_date"
+    )
+
+    # получение чата сотрудника
+    chat_messages = ChatMessage.objects.filter(employee=employee).order_by("timestamp")
+
     return render(
         request,
         "store_app/personal_account.html",
-        {"employee": employee},
+        {
+            "employee": employee,
+            "orders": orders,
+            "chat_messages": chat_messages,
+        },
     )
+
+
+def send_message(request):
+    """Обработка отправки сообщения от сотрудника"""
+    if request.method == "POST":
+        employee_id = request.session.get("employee_id")
+
+        if employee_id:
+            message_text = request.POST.get("message", "").strip()
+
+            if message_text:
+                employee = Employee.objects.get(id=employee_id)
+
+                # Сохраняем сообщение в БД
+                ChatMessage.objects.create(
+                    employee=employee,
+                    message_from_user=message_text,
+                    message_to_admin=None,
+                    timestamp=timezone.now(),
+                )
+
+    return redirect("personal_account")
 
 
 def logout(request):

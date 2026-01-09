@@ -10,6 +10,7 @@ from .views import (
     update_quantity,
     remove_item,
     add_all_to_cart,
+    send_message
 )
 
 urlpatterns = [
@@ -22,4 +23,5 @@ urlpatterns = [
     path("login/", login, name="login"),
     path("registration/", registration, name="registration"),
     path("logout/", logout, name="logout"),
+    path('send-message/', send_message, name='send_message'),
 ]

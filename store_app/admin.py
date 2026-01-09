@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Employee, Order, OrderItem, Product
+from .models import Employee, Order, OrderItem, Product, ChatMessage
 
 
 @admin.register(Employee)
@@ -39,3 +39,24 @@ class ProductAdmin(admin.ModelAdmin):
         "price",
     )
 
+
+@admin.register(ChatMessage)
+class ChatMessageAdmin(admin.ModelAdmin):
+    # Можно оставить пустым или добавить базовые настройки
+    list_display = (
+        "employee",
+        "message_from_user_preview",
+        "message_to_admin_preview",
+        "timestamp",
+    )
+    list_filter = ("employee", "timestamp")
+
+    def message_from_user_preview(self, obj):
+        return obj.message_from_user[:50] + "..." if obj.message_from_user else "-"
+
+    message_from_user_preview.short_description = "Вопрос от сотрудника"
+
+    def message_to_admin_preview(self, obj):
+        return obj.message_to_admin[:50] + "..." if obj.message_to_admin else "-"
+
+    message_to_admin_preview.short_description = "Ответ админа"

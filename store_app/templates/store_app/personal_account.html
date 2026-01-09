@@ -1,241 +1,431 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Только Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<title>Личный кабинет</title>
+    <style>
+        body {
+            background: #f8f9fa;
+            padding: 20px;
+        }
 
-<style>
-    body {
-        background: #f7f7f7;
-    }
-    .sidebar {
-        background: #ffffff;
-        padding: 20px;
-        height: 100vh;
-        border-right: 1px solid #ddd;
-    }
-    .sidebar h3 {
-        margin-bottom: 30px;
-    }
-    .sidebar .menu-item {
-        cursor: pointer;
-        margin-bottom: 15px;
-        font-size: 18px;
-    }
-    .sidebar .menu-item:hover {
-        text-decoration: underline;
-    }
-    .content-block {
-        display: none;
-    }
-    #todo-chat {
-        background: #fff;
-        height: 350px;
-        border: 1px solid #ccc;
-        border-radius: 10px;
-        padding: 15px;
-        overflow-y: auto;
-    }
-    .chat-input-area {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-    }
-    .attach-btn {
-        padding: 8px 12px;
-        background: #ddd;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-</style>
+        .container {
+            max-width: 1200px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-bottom: -1px;
+        }
+
+        .tab.active {
+            background: white;
+            border-color: #dee2e6 #dee2e6 white;
+            border-radius: 5px 5px 0 0;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .order-item {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .badge-status {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+
+        .badge-ordered {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-cart {
+            background: #ffc107;
+            color: black;
+        }
+
+        /* Стили для чата */
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            max-width: 70%;
+        }
+
+        .message.user {
+            background: #d1e7dd;
+            margin-left: auto;
+        }
+
+        .message.admin {
+            background: #cfe2ff;
+            margin-right: auto;
+        }
+
+        .message strong {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 0.9em;
+        }
+
+        .timestamp {
+            font-size: 0.8em;
+            color: #6c757d;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .attach-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .attach-btn:hover {
+            background: #dee2e6;
+        }
+    </style>
 </head>
-
 <body>
+    <div class="container">
+        <h1 class="mb-4">Личный кабинет</h1>
 
-<div class="container-fluid">
-    <div class="row">
-
-        <!-- ЛЕВАЯ СТОРОНА -->
-        <div class="col-3 sidebar">
-            <h3 class="d-flex justify-content-between align-items-center">
-                Личный кабинет
-                <a href="{% url 'start_page' %}" class="text-decoration-none" style="font-size: 16px;">в парках и скверах</a>
-            </h3>
-
-            <div class="menu-item" onclick="showTab('info')">О себе</div>
-            <div class="menu-item" onclick="showTab('orders')">Заказы</div>
-            <div class="menu-item" onclick="showTab('todo')">Мой список дел</div>
+        <!-- Навигация -->
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('profile')">Профиль</div>
+            <div class="tab" onclick="showTab('orders')">
+                Мои заказы
+                {% if orders %}
+                    <span class="badge bg-primary ms-1">{{ orders.count }}</span>
+                {% endif %}
+            </div>
+            <div class="tab" onclick="showTab('chat')">Чат с админом</div>
+            <div style="margin-left: auto; display: flex;">
+                <a href="{% url 'start_page' %}" class="tab">В ПАРКИ И СКВЕРЫ</a>
+                <a href="{% url 'logout' %}" class="tab text-danger">Выйти</a>
+            </div>
         </div>
 
-        <!-- ПРАВАЯ СТОРОНА -->
-        <div class="col-9 p-4">
+        <!-- Вкладка "Профиль" -->
+        <div id="profile" class="tab-content active">
+            <h3>Данные профиля</h3>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Имя:</label>
+                        <input type="text" class="form-control" value="{{ employee.first_name }}" readonly>
+                    </div>
 
-                    <!-- Вкладка "О себе" -->
-                        <div id="info" class="content-block">
-                            <h3>О себе</h3>
+                    <div class="mb-3">
+                        <label class="form-label">Фамилия:</label>
+                        <input type="text" class="form-control" value="{{ employee.last_name }}" readonly>
+                    </div>
 
+                    <div class="mb-3">
+                        <label class="form-label">Email:</label>
+                        <input type="email" class="form-control" value="{{ employee.email }}" readonly>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Отдел:</label>
+                        <input type="text" class="form-control" value="{{ employee.department }}" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Должность:</label>
+                        <input type="text" class="form-control" value="{{ employee.position }}" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка "Мои заказы" -->
+        <div id="orders" class="tab-content">
+            <h3>Мои заказы</h3>
+
+            {% if orders %}
+                <p class="text-muted">Всего заказов: {{ orders.count }}</p>
+
+                {% for order in orders %}
+                <div class="order-item">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>Заказ #{{ order.id }}</h5>
+                            <p class="mb-1">
+                                <strong>Дата:</strong>
+                                {% if order.order_date %}
+                                    {{ order.order_date|date:"d.m.Y H:i" }}
+                                {% else %}
+                                    не указана
+                                {% endif %}
+                            </p>
+                            <p class="mb-1">
+                                <strong>Статус:</strong>
+                                <span class="badge-status {% if order.status == 'ordered' %}badge-ordered{% else %}badge-cart{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </p>
+                            <p class="mb-1">
+                                <strong>Для:</strong>
+                                {% if order.for_whom %}
+                                    {{ order.for_whom }}
+                                {% else %}
+                                    <span class="text-muted">не указано</span>
+                                {% endif %}
+                            </p>
+                            <p class="mb-1">
+                                <strong>Количество товаров:</strong> {{ order.items.count }}
+                            </p>
+                        </div>
+
+                        <div class="col-md-4 text-end">
                             <div class="mt-3">
-                                <label>Имя:</label>
-                                <input
-                                id="inp-name"
-                                class="form-control profile-input"
-                                value="{{ employee.first_name }}"
-                                disabled
-                                >
+                                <h4 class="text-primary">{{ order.total_price|floatformat:2 }} ₽</h4>
                             </div>
 
-                        <div class="mt-3">
-                            <label>Фамилия:</label>
-                            <input
-                                id="inp-surname"
-                                class="form-control profile-input"
-                                value="{{ employee.last_name }}"
-                                disabled
-                            >
-                        </div>
-
-                        <div class="mt-3">
-                            <label>Почта:</label>
-                            <input
-                                id="inp-email"
-                                class="form-control profile-input"
-                                value="{{ employee.email }}"
-                                disabled
-                            >
-                        </div>
-
-                        <div class="mt-3">
-                            <label>Отдел:</label>
-                            <input
-                                id="inp-dept"
-                                class="form-control profile-input"
-                                value="{{ employee.department }}"
-                                disabled
-                            >
-                        </div>
-
-                        <div class="mt-3">
-                            <label>Должность:</label>
-                            <input
-                                id="inp-job"
-                                class="form-control profile-input"
-                                value="{{ employee.position }}"
-                                disabled
-                            >
-                        </div>
-
-                        <div class="mt-4 d-flex gap-3">
-                            <button
-                                    id="btn-edit"
-                                    class="btn btn-secondary"
-                                    onclick="enableEdit()">Редактировать
+                            <button class="btn btn-sm btn-outline-primary mt-2"
+                                    onclick="showOrderDetails({{ order.id }})">
+                                Показать товары
                             </button>
-
-                            <button
-                                    id="btn-save" class="btn btn-primary" onclick="saveProfile()" disabled> Сохранить
-                            </button>
-                             <a
-                                     href="{% url 'logout' %}" class="btn btn-danger">Выйти
-                             </a>
                         </div>
                     </div>
 
-            <!-- Вкладка "Заказы" -->
-            <div id="orders" class="content-block">
-                <h3>Ваши заказы</h3>
-
-                <!--
-                    TODO:
-                    Здесь будет backend-логика:
-                    - получение списка заказов пользователя
-                    - отображение статуса заказа
-                    - вывод данных с сервера
-                -->
-
-                <p class="mt-3 text-muted">
-                    Раздел пока пуст. Логика появится при подключении бэкенда.
-                </p>
-            </div>
-
-            <!-- Вкладка "Мой список дел" -->
-            <div id="todo" class="content-block">
-                <h3>Мой список дел</h3>
-
-                <!-- Окно сообщений -->
-                <div id="todo-chat" class="mt-4"></div>
-
-                <!-- Поле ввода + кнопки -->
-                <div class="chat-input-area">
-                    <input id="todo-input" class="form-control" placeholder="Введите сообщение...">
-
-                    <div class="attach-btn" onclick="document.getElementById('fileInput').click()">📎</div>
-                    <input id="fileInput" type="file" hidden>
-
-                    <button class="btn btn-primary" onclick="sendTodo()">Отправить</button>
+                    <!-- Детали заказа -->
+                    <div id="order-details-{{ order.id }}" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                        <h6>Товары в заказе:</h6>
+                        {% if order.items.all %}
+                            <ul class="list-group">
+                                {% for item in order.items.all %}
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>{{ item.product.name_product }} × {{ item.quantity }}</span>
+                                    <span class="text-primary">{{ item.item_total|floatformat:2 }} ₽</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="mt-2 text-end">
+                                <strong>Итого: {{ order.total_price|floatformat:2 }} ₽</strong>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Товары не найдены</p>
+                        {% endif %}
+                    </div>
                 </div>
+                {% endfor %}
+
+            {% else %}
+                <div class="alert alert-info mt-4">
+                    <h5>Заказов пока нет</h5>
+                    <p>У вас еще нет оформленных заказов.</p>
+                    <a href="{% url 'start_page' %}" class="btn btn-primary">Перейти к покупкам</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Вкладка "Чат с админом" -->
+        <div id="chat" class="tab-content">
+    <h3 class="mb-4">💬 Чат с администратором</h3>
+
+    <div class="chat-container">
+        <!-- История сообщений -->
+        <div class="chat-messages" id="chat-messages">
+            <!-- Отладочная информация (временно) -->
+            <div class="alert alert-info mb-3">
+                Всего сообщений: {{ chat_messages.count }}
             </div>
 
+            {% for msg in chat_messages %}
+                <!-- Сообщение ОТ СОТРУДНИКА -->
+                {% if msg.message_from_user %}
+                <div class="message user">
+                    <strong>Вы:</strong>
+                    {{ msg.message_from_user }}
+                    <div class="timestamp">{{ msg.timestamp|time:"H:i" }} ({{ msg.timestamp|date:"d.m" }})</div>
+                </div>
+                {% endif %}
+
+                <!-- Ответ ОТ АДМИНА -->
+                {% if msg.message_to_admin %}
+                <div class="message admin">
+                    <strong>Администратор:</strong>
+                    {{ msg.message_to_admin }}
+                    <div class="timestamp">{{ msg.timestamp|time:"H:i" }} ({{ msg.timestamp|date:"d.m" }})</div>
+                </div>
+                {% endif %}
+            {% empty %}
+                <div class="text-center py-4">
+                    <p class="text-muted">Нет сообщений. Начните общение!</p>
+                </div>
+            {% endfor %}
         </div>
+
+        <!-- Простая форма для отправки сообщения -->
+        <form method="post" action="{% url 'send_message' %}" class="chat-input-area">
+            {% csrf_token %}
+            <!-- Скрепка для прикрепления файлов (пока просто для вида) -->
+            <div class="attach-btn" onclick="alert('В будущем здесь будет загрузка файлов')">
+                📎
+            </div>
+
+            <!-- Поле для ввода текста -->
+            <input type="text"
+                   name="message"
+                   class="form-control"
+                   placeholder="Введите сообщение..."
+                   required>
+
+            <!-- Кнопка отправки -->
+            <button type="submit" class="btn btn-primary" style="padding: 8px 20px;">
+                Отправить
+            </button>
+        </form>
+
+        <small class="text-muted mt-2 d-block">
+            💡 Администратор ответит вам через админ-панель
+        </small>
     </div>
 </div>
 
 
-<script>
-    // Показываем вкладку справа
-    function showTab(tab) {
-        document.querySelectorAll(".content-block").forEach(b => b.style.display = "none");
-        document.getElementById(tab).style.display = "block";
-    }
 
-    // По умолчанию:
-    showTab("info");
+    <script>
+        // Переключение вкладок
+        function showTab(tabName) {
+            // Скрываем все вкладки
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
 
-    // Отправка сообщения в список дел
-    function sendTodo() {
-        let input = document.getElementById("todo-input");
-        let text = input.value.trim();
-        if (!text) return;
+            // Показываем выбранную вкладку
+            document.getElementById(tabName).classList.add('active');
 
-        let chat = document.getElementById("todo-chat");
+            // Активируем соответствующую кнопку
+            const tabs = document.querySelectorAll('.tab');
+            if (tabName === 'profile') tabs[0].classList.add('active');
+            if (tabName === 'orders') tabs[1].classList.add('active');
+            if (tabName === 'chat') tabs[2].classList.add('active');
+        }
 
-        let message = document.createElement("div");
-        message.textContent = "• " + text;
-        message.style.marginBottom = "8px";
+        // Показать/скрыть детали заказа
+        function showOrderDetails(orderId) {
+            const detailsDiv = document.getElementById('order-details-' + orderId);
+            detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+        }
 
-        chat.appendChild(message);
-        input.value = "";
-        chat.scrollTop = chat.scrollHeight;
-    }
-    // Включаем режим редактирования
-    function enableEdit() {
-        document.querySelectorAll(".profile-input").forEach(input => {
-            input.disabled = false;
-        });
+        // Отправка сообщения
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
 
-        document.getElementById("btn-save").disabled = true; // пока не изменено
-    }
+            if (message) {
+                addMessage('user', message);
+                input.value = '';
+                // Сообщение будет видно только пользователю
+                // Потом будет отправляться на сервер и сохраняться в БД
+            }
+        }
 
-    // Если в поле что-то меняем → кнопка "Сохранить" становится активной
-    document.querySelectorAll(".profile-input").forEach(input => {
-        input.addEventListener("input", () => {
-            document.getElementById("btn-save").disabled = false;
-        });
-    });
+        // Добавление сообщения в чат (только на фронтенде)
+        function addMessage(sender, text) {
+            const chat = document.getElementById('chat-messages');
+            const now = new Date();
+            const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-    // Сохраняем данные
-    function saveProfile() {
-        document.querySelectorAll(".profile-input").forEach(input => {
-            input.disabled = true;
-        });
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.innerHTML = `
+                <strong>${sender === 'user' ? 'Вы' : 'Администратор'}:</strong>
+                ${text}
+                <div class="timestamp">${time}</div>
+            `;
 
-        document.getElementById("btn-save").disabled = true;
-    }
+            chat.appendChild(messageDiv);
+            chat.scrollTop = chat.scrollHeight;
 
-</script>
+            // Здесь в будущем будет AJAX запрос для сохранения в БД
+            // Например: saveMessageToServer(sender, text);
+        }
 
+        // Обработка выбора файла
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Пока просто показываем уведомление
+                addMessage('user', `📎 Прикреплен файл: ${file.name}`);
+                event.target.value = ''; // Сбрасываем input
+
+                // Здесь в будущем будет загрузка файла на сервер
+            }
+        }
+
+        // Функция для загрузки истории сообщений из БД (будет позже)
+        function loadChatHistory() {
+            // Здесь будет AJAX запрос к серверу
+            // Например: fetch('/api/chat/messages/')
+        }
+    </script>
 </body>
 </html>

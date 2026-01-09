@@ -96,3 +96,13 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name_product} * {self.quantity}"
+
+class ChatMessage(models.Model):
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="chat_messages",
+    )
+    message_from_user = models.TextField()
+    message_to_admin = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
