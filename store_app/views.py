@@ -61,56 +61,118 @@ def remove_item(request, item_id):
             return JsonResponse({"success": False, "error": str(e)})
 
 
-def add_to_cart(request):
-    """Добавляем в корзину товар и количество"""
+def add_all_to_cart(request):
+    """Добавляет ВСЕ выбранные товары в корзину"""
     if request.method == "POST":
+        employee_id = request.session.get("employee_id")
 
-        # Сначала получаем данные товара
-        product_id = request.POST.get("product_id")
-        quantity = int(request.POST.get("quantity", 0))
+        if not employee_id:
+            messages.error(request, "Войдите в аккаунт")
+            return redirect("login")
 
-        # Проверка пользователя, чтоб он был
-        if quantity > 0:
-            employee_id = request.session.get("employee_id")
-            if not employee_id:
-                messages.error(request, "Войдите в аккаунт")
-                return redirect("login")
+        employee = get_object_or_404(Employee, id=employee_id)
 
-            # Получаем объекты
-            employee = get_object_or_404(Employee, id=employee_id)
-            product = get_object_or_404(Product, id=product_id)
+        # Находим или создаем корзину
+        order, _ = Order.objects.get_or_create(
+            employee=employee, status="cart", defaults={"order_date": timezone.now()}
+        )
 
-            # Находим или создаем заказ в Order
-            order, created = Order.objects.get_or_create(
-                employee=employee,
-                status="cart",
-                defaults={"order_date": timezone.now()},
+        added_items = []
+
+        # Получаем все данные POST
+        for key, value in request.POST.items():
+            if key.startswith("product_") and value.isdigit():
+                product_id = key.replace("product_", "")
+                quantity = int(value)
+
+                if quantity > 0:
+                    try:
+                        product = Product.objects.get(id=product_id)
+
+                        order_item, created = OrderItem.objects.get_or_create(
+                            order=order,
+                            product=product,
+                            defaults={"quantity": quantity},
+                        )
+
+                        if not created:
+                            order_item.quantity += quantity
+                            order_item.save()
+                            added_items.append(
+                                f"✓ {product.name_product}: +{quantity} шт. (теперь {order_item.quantity})"
+                            )
+                        else:
+                            added_items.append(
+                                f"✓ {product.name_product}: {quantity} шт."
+                            )
+
+                    except Product.DoesNotExist:
+                        continue
+
+        # Показываем сообщение
+        if added_items:
+            messages.success(
+                request,
+                f"✅ Добавлено в корзину:<br>"
+                + "<br>".join(added_items[:5])  # показываем первые 5
+                + ("<br>...и другие" if len(added_items) > 5 else ""),
             )
-
-            # Находим или создаем OrderItem связь количества товара, который мы добавили в заказ Order
-            order_item, created = OrderItem.objects.get_or_create(
-                order=order, product=product, defaults={"quantity": quantity}
-            )
-
-            if not created:
-                # если уже есть в корзине, что, либо просо добавляем количество!
-                order_item.quantity += quantity
-                order_item.save()
-                messages.success(
-                    request,
-                    f"Добавлено ещё {quantity} шт. товара '{product.name_product}'! "
-                    f"Теперь в корзине: {order_item.quantity} шт.",
-                )
-            else:
-                messages.success(
-                    request,
-                    f"Товар '{product.name_product}' добавлен в корзину! Количество: {quantity} шт.",
-                )
-
         else:
-            messages.warning(request, "Выберите количество товара!")
+            messages.warning(request, "Не выбрано ни одного товара!")
 
     return redirect("start_page")
+
+
+# def add_to_cart(request):
+#     """Добавляем в корзину товар и количество"""
+#     if request.method == "POST":
+#
+#         # Сначала получаем данные товара
+#         product_id = request.POST.get("product_id")
+#         quantity = int(request.POST.get("quantity", 0))
+#
+#         # Проверка пользователя, чтоб он был
+#         if quantity > 0:
+#             employee_id = request.session.get("employee_id")
+#             if not employee_id:
+#                 messages.error(request, "Войдите в аккаунт")
+#                 return redirect("login")
+#
+#             # Получаем объекты
+#             employee = get_object_or_404(Employee, id=employee_id)
+#             product = get_object_or_404(Product, id=product_id)
+#
+#             # Находим или создаем заказ в Order
+#             order, created = Order.objects.get_or_create(
+#                 employee=employee,
+#                 status="cart",
+#                 defaults={"order_date": timezone.now()},
+#             )
+#
+#             # Находим или создаем OrderItem связь количества товара, который мы добавили в заказ Order
+#             order_item, created = OrderItem.objects.get_or_create(
+#                 order=order, product=product, defaults={"quantity": quantity}
+#             )
+#
+#             if not created:
+#                 # если уже есть в корзине, что, либо просо добавляем количество!
+#                 order_item.quantity += quantity
+#                 order_item.save()
+#                 messages.success(
+#                     request,
+#                     f"Добавлено ещё {quantity} шт. товара '{product.name_product}'! "
+#                     f"Теперь в корзине: {order_item.quantity} шт.",
+#                 )
+#             else:
+#                 messages.success(
+#                     request,
+#                     f"Товар '{product.name_product}' добавлен в корзину! Количество: {quantity} шт.",
+#                 )
+#
+#         else:
+#             messages.warning(request, "Выберите количество товара!")
+#
+#     return redirect("start_page")
 
 
 def ordering(request):
@@ -162,6 +224,8 @@ def ordering(request):
             messages.success(
                 request, f"✅ Заказ #{order.id} оформлен! Сумма: {order.total_price} ₽"
             )
+
+            return redirect("personal_account")
 
         except Order.DoesNotExist:
             messages.error(request, "Корзина не найдена!")
@@ -231,8 +295,3 @@ def registration(request):
 
     context = {"form": form}
     return render(request, "store_app/registration.html", context=context)
-
-
-def sending_recepient_data(request):
-    if request.method == "POST":
-        form = RecipientDetailsForm(request.POST)

@@ -6,14 +6,15 @@ from .views import (
     login,
     registration,
     logout,
-    add_to_cart,
+    # add_to_cart,
     update_quantity,
     remove_item,
+    add_all_to_cart,
 )
 
 urlpatterns = [
     path("", start_page, name="start_page"),
-    path("add-to-cart/", add_to_cart, name="add_to_cart"),
+    path("add-all-to-cart/", add_all_to_cart, name="add_all_to_cart"),
     path("ordering/", ordering, name="ordering"),
     path("update-quantity/<int:item_id>/", update_quantity, name="update_quantity"),
     path("remove-item/<int:item_id>/", remove_item, name="remove_item"),

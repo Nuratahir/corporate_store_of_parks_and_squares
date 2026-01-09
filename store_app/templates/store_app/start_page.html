@@ -18,49 +18,105 @@
                 </div>
 
                 <div class="product-control">
-                    <button class="btn btn-secondary" onclick="changeCount({{ product.id }}, -1)">–</button>
+                    <button class="btn btn-secondary" onclick="updateProductCount({{ product.id }}, -1)">–</button>
                     <span id="count{{ product.id }}">0</span>
-                    <button class="btn btn-secondary" onclick="changeCount({{ product.id }}, 1)">+</button>
+                    <button class="btn btn-secondary" onclick="updateProductCount({{ product.id }}, 1)">+</button>
                 </div>
-
-                <!-- ИСПРАВЛЕННАЯ КНОПКА: ФОРМА вместо ссылки -->
-                <form method="post" action="{% url 'add_to_cart' %}" class="d-inline">
-                    {% csrf_token %}
-                    <input type="hidden" name="product_id" value="{{ product.id|stringformat:'i' }}">
-                    <input type="hidden" name="quantity" id="quantity{{ product.id }}" value="0">
-                    <button type="submit" id="buy{{ product.id }}"
-                            class="btn btn-success mt-3 disabled-btn">
-                        В корзину
-                    </button>
-                </form>
             </div>
             {% endfor %}
+        </div>
+
+        <!-- ЕДИНАЯ КНОПКА ДЛЯ ВСЕХ ТОВАРОВ -->
+        <div class="text-center mt-5">
+            <form id="addAllForm" method="post" action="{% url 'add_all_to_cart' %}">
+                {% csrf_token %}
+                <!-- Скрытые поля для ВСЕХ выбранных товаров -->
+                {% for product in products %}
+                <input type="hidden" name="product_{{ product.id }}" id="product_{{ product.id }}" value="0">
+                {% endfor %}
+
+                <button type="submit" id="addAllBtn" class="btn btn-success btn-lg" disabled>
+                    🛒 Добавить все выбранные товары в корзину
+                </button>
+                <p class="text-muted mt-2" id="selectedCount">Выбрано товаров: 0</p>
+            </form>
         </div>
     </div>
 </main>
 
-<!-- ДОБАВЬ этот script в start_page.html (или обнови base.html) -->
+<!-- JavaScript ТОЛЬКО для этой страницы -->
 <script>
-// Функция должна обновлять и hidden поле тоже!
-function changeCount(id, delta) {
-    const countEl = document.getElementById("count" + id);
-    const quantityInput = document.getElementById("quantity" + id); // ← ВАЖНО!
-    const btn = document.getElementById("buy" + id);
+// УПРОЩЕННАЯ ВЕРСИЯ - убираем DOMContentLoaded и сложную логику
 
-    let val = parseInt(countEl.textContent) + delta;
-    if (val < 0) val = 0;
+// Функция обновления количества
+function updateProductCount(productId, delta) {
+    console.log(`updateProductCount: ${productId}, delta: ${delta}`);
 
-    // Обновляем видимое число
-    countEl.textContent = val;
-    // Обновляем hidden поле формы
-    quantityInput.value = val;
+    // 1. Находим элементы
+    const countEl = document.getElementById("count" + productId);
+    const hiddenInput = document.getElementById("product_" + productId);
 
-    // Активируем/деактивируем кнопку
-    if (val > 0) {
-        btn.classList.remove("disabled-btn");
-    } else {
-        btn.classList.add("disabled-btn");
+    if (!countEl) {
+        console.error(`Не найден count${productId}`);
+        return;
     }
+    if (!hiddenInput) {
+        console.error(`Не найден product_${productId}`);
+        return;
+    }
+
+    // 2. Обновляем количество
+    let current = parseInt(countEl.textContent) || 0;
+    let newCount = current + delta;
+    if (newCount < 0) newCount = 0;
+
+    countEl.textContent = newCount;
+    hiddenInput.value = newCount;
+
+    console.log(`Товар ${productId}: было ${current}, стало ${newCount}`);
+
+    // 3. Обновляем сводку
+    updateCartSummary();
 }
+
+// Функция обновления сводки (упрощенная)
+function updateCartSummary() {
+    let totalItems = 0;
+    let totalQuantity = 0;
+
+    // Простой перебор всех hidden полей
+    const hiddenInputs = document.querySelectorAll('input[id^="product_"]');
+
+    hiddenInputs.forEach(input => {
+        const qty = parseInt(input.value) || 0;
+        if (qty > 0) {
+            totalItems++;
+            totalQuantity += qty;
+        }
+    });
+
+    // Обновляем текст
+    const selectedCountEl = document.getElementById("selectedCount");
+    if (selectedCountEl) {
+        selectedCountEl.textContent = `Выбрано: ${totalItems} вида(ов), всего ${totalQuantity} шт.`;
+    }
+
+    // Обновляем кнопку
+    const addAllBtn = document.getElementById("addAllBtn");
+    if (addAllBtn) {
+        if (totalItems > 0) {
+            addAllBtn.disabled = false;
+            addAllBtn.textContent = `🛒 Добавить ${totalItems} вида(ов) товаров`;
+        } else {
+            addAllBtn.disabled = true;
+            addAllBtn.textContent = "🛒 Добавить все выбранные товары в корзину";
+        }
+    }
+
+    console.log(`Сводка: ${totalItems} видов, ${totalQuantity} шт.`);
+}
+
+// Инициализация - просто вызываем updateCartSummary
+updateCartSummary();
 </script>
 {% endblock %}

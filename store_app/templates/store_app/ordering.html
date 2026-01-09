@@ -4,23 +4,23 @@
 
 {% block content %}
 
-<!--&lt;!&ndash; ОТЛАДОЧНЫЙ БЛОК (временно) &ndash;&gt;-->
-<!--<div class="container mt-3" style="background: #f8f9fa; padding: 15px; border-radius: 5px;">-->
-<!--    <h5>🔍 Отладка:</h5>-->
-<!--    <pre>-->
-<!--    employee_id из сессии: {{ request.session.employee_id|default:"НЕТ" }}-->
-<!--    employee объект: {{ employee|default:"НЕТ" }}-->
-<!--    employee.id: {{ employee.id|default:"НЕТ" }}-->
-<!--    employee.email: {{ employee.email|default:"НЕТ" }}-->
-<!--    order: {{ order|default:"НЕТ" }}-->
-<!--    order.id: {{ order.id|default:"НЕТ" }}-->
-<!--    order.status: {{ order.status|default:"НЕТ" }}-->
-<!--    order_items: {{ order_items|default:"НЕТ" }}-->
-<!--    order_items count: {{ order_items|length|default:"0" }}-->
-<!--    Время: {% now "H:i:s" %}-->
-<!--    </pre>-->
-<!--</div>-->
-<!--&lt;!&ndash; КОНЕЦ ОТЛАДКИ &ndash;&gt;-->
+<!-- ОТЛАДОЧНЫЙ БЛОК (временно) -->
+<div class="container mt-3" style="background: #f8f9fa; padding: 15px; border-radius: 5px;">
+    <h5>🔍 Отладка:</h5>
+    <pre>
+    employee_id из сессии: {{ request.session.employee_id|default:"НЕТ" }}
+    employee объект: {{ employee|default:"НЕТ" }}
+    employee.id: {{ employee.id|default:"НЕТ" }}
+    employee.email: {{ employee.email|default:"НЕТ" }}
+    order: {{ order|default:"НЕТ" }}
+    order.id: {{ order.id|default:"НЕТ" }}
+    order.status: {{ order.status|default:"НЕТ" }}
+    order_items: {{ order_items|default:"НЕТ" }}
+    order_items count: {{ order_items|length|default:"0" }}
+    Время: {% now "H:i:s" %}
+    </pre>
+</div>
+<!-- КОНЕЦ ОТЛАДКИ -->
 
 <style>
     .product-card {
@@ -128,18 +128,29 @@
         </div>
 
         <!-- КНОПКИ -->
-        <div class="mt-5 text-center">
-            <a href="{% url 'start_page' %}" class="btn btn-outline-primary me-3">
-                ← Добавить еще товары
-            </a>
+        <div class="mt-5 text-center bg-light p-4 rounded shadow">
+    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+        <a href="{% url 'start_page' %}" class="btn btn-outline-primary btn-lg">
+            ← Добавить еще товары
+        </a>
 
-            <form method="post" class="d-inline">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-success btn-lg">
-                    ✅ Подтвердить заказ на {{ order.total_price }} ₽
-                </button>
-            </form>
-        </div>
+        <div class="vr d-none d-md-block" style="height: 40px;"></div>
+
+        <form method="post" class="m-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success btn-lg px-5 py-3">
+                <span class="fs-4">✅</span>
+                <span class="fw-bold">Подтвердить заказ</span>
+                <br>
+                <small>Сумма: {{ order.total_price }} ₽</small>
+            </button>
+        </form>
+    </div>
+
+    <p class="text-muted mt-3">
+        После подтверждения статус заказа изменится с "Корзина" на "Оформлен"
+    </p>
+</div>
 
     {% else %}
         <!-- КОРЗИНА ПУСТА (вообще нет order) -->
