@@ -26,7 +26,7 @@
             {% endfor %}
         </div>
 
-        <!-- ЕДИНАЯ КНОПКА ДЛЯ ВСЕХ ТОВАРОВ -->
+        <!-- Единая кнопка для всех товаров -->
         <div class="text-center mt-5">
             <form id="addAllForm" method="post" action="{% url 'add_all_to_cart' %}">
                 {% csrf_token %}
@@ -44,10 +44,7 @@
     </div>
 </main>
 
-<!-- JavaScript ТОЛЬКО для этой страницы -->
 <script>
-// УПРОЩЕННАЯ ВЕРСИЯ - убираем DOMContentLoaded и сложную логику
-
 // Функция обновления количества
 function updateProductCount(productId, delta) {
     console.log(`updateProductCount: ${productId}, delta: ${delta}`);

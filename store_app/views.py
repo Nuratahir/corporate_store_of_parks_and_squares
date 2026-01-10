@@ -35,7 +35,7 @@ def update_quantity(request, item_id):
     """Обновление количества товара в корзине"""
     if request.method == "POST":
         try:
-            delta = int(request.POST.get("delta", 0))  # ← из FormData
+            delta = int(request.POST.get("delta", 0))
             item = get_object_or_404(OrderItem, id=item_id)
 
             new_quantity = item.quantity + delta
@@ -113,66 +113,14 @@ def add_all_to_cart(request):
         if added_items:
             messages.success(
                 request,
-                f"✅ Добавлено в корзину:<br>"
-                + "<br>".join(added_items[:5])  # показываем первые 5
+                f"Добавлено в корзину:<br>"
+                + "<br>".join(added_items[:5])
                 + ("<br>...и другие" if len(added_items) > 5 else ""),
             )
         else:
             messages.warning(request, "Не выбрано ни одного товара!")
 
     return redirect("start_page")
-
-
-# def add_to_cart(request):
-#     """Добавляем в корзину товар и количество"""
-#     if request.method == "POST":
-#
-#         # Сначала получаем данные товара
-#         product_id = request.POST.get("product_id")
-#         quantity = int(request.POST.get("quantity", 0))
-#
-#         # Проверка пользователя, чтоб он был
-#         if quantity > 0:
-#             employee_id = request.session.get("employee_id")
-#             if not employee_id:
-#                 messages.error(request, "Войдите в аккаунт")
-#                 return redirect("login")
-#
-#             # Получаем объекты
-#             employee = get_object_or_404(Employee, id=employee_id)
-#             product = get_object_or_404(Product, id=product_id)
-#
-#             # Находим или создаем заказ в Order
-#             order, created = Order.objects.get_or_create(
-#                 employee=employee,
-#                 status="cart",
-#                 defaults={"order_date": timezone.now()},
-#             )
-#
-#             # Находим или создаем OrderItem связь количества товара, который мы добавили в заказ Order
-#             order_item, created = OrderItem.objects.get_or_create(
-#                 order=order, product=product, defaults={"quantity": quantity}
-#             )
-#
-#             if not created:
-#                 # если уже есть в корзине, что, либо просо добавляем количество!
-#                 order_item.quantity += quantity
-#                 order_item.save()
-#                 messages.success(
-#                     request,
-#                     f"Добавлено ещё {quantity} шт. товара '{product.name_product}'! "
-#                     f"Теперь в корзине: {order_item.quantity} шт.",
-#                 )
-#             else:
-#                 messages.success(
-#                     request,
-#                     f"Товар '{product.name_product}' добавлен в корзину! Количество: {quantity} шт.",
-#                 )
-#
-#         else:
-#             messages.warning(request, "Выберите количество товара!")
-#
-#     return redirect("start_page")
 
 
 def ordering(request):
@@ -182,7 +130,7 @@ def ordering(request):
     if not employee_id:
         return redirect("login")
 
-    # Получаем объект сотрудника для шаблона
+    # Получаем объект сотрудника
     employee = get_object_or_404(Employee, id=employee_id)
 
     if request.method == "GET":
@@ -199,8 +147,9 @@ def ordering(request):
             order_items = []
 
         # Получаем список ВСЕХ сотрудников (кроме текущего)
-        all_employees = (Employee.objects.exclude(id=employee_id)
-                         .order_by("first_name", "last_name"))
+        all_employees = Employee.objects.exclude(id=employee_id).order_by(
+            "first_name", "last_name"
+        )
 
         context = {
             "order": order,
@@ -242,7 +191,8 @@ def ordering(request):
             order.save()
 
             messages.success(
-                request, f"✅ Заказ #{order.id} оформлен {recipient_msg}! Сумма: {order.total_price} ₽"
+                request,
+                f"Заказ #{order.id} оформлен {recipient_msg}! Сумма: {order.total_price} ₽",
             )
 
             return redirect("personal_account")
@@ -265,9 +215,7 @@ def personal_account(request):
     orders = Order.objects.filter(
         employee=employee,
         status=Order.STATUS_ORDERED,  # только оформленные заказы
-    ).order_by(
-        "-order_date"
-    )
+    ).order_by("-order_date")
 
     # получение чата сотрудника
     chat_messages = ChatMessage.objects.filter(employee=employee).order_by("timestamp")

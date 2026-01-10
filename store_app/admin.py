@@ -42,7 +42,6 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
-    # Можно оставить пустым или добавить базовые настройки
     list_display = (
         "employee",
         "message_from_user_preview",

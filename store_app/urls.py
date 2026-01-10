@@ -6,7 +6,6 @@ from .views import (
     login,
     registration,
     logout,
-    # add_to_cart,
     update_quantity,
     remove_item,
     add_all_to_cart,

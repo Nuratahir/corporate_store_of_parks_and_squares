@@ -4,24 +4,6 @@
 
 {% block content %}
 
-<!--&lt;!&ndash; ОТЛАДОЧНЫЙ БЛОК (временно) &ndash;&gt;-->
-<!--<div class="container mt-3" style="background: #f8f9fa; padding: 15px; border-radius: 5px;">-->
-<!--    <h5>🔍 Отладка:</h5>-->
-<!--    <pre>-->
-<!--    employee_id из сессии: {{ request.session.employee_id|default:"НЕТ" }}-->
-<!--    employee объект: {{ employee|default:"НЕТ" }}-->
-<!--    employee.id: {{ employee.id|default:"НЕТ" }}-->
-<!--    employee.email: {{ employee.email|default:"НЕТ" }}-->
-<!--    order: {{ order|default:"НЕТ" }}-->
-<!--    order.id: {{ order.id|default:"НЕТ" }}-->
-<!--    order.status: {{ order.status|default:"НЕТ" }}-->
-<!--    order_items: {{ order_items|default:"НЕТ" }}-->
-<!--    order_items count: {{ order_items|length|default:"0" }}-->
-<!--    Время: {% now "H:i:s" %}-->
-<!--    </pre>-->
-<!--</div>-->
-<!--&lt;!&ndash; КОНЕЦ ОТЛАДКИ &ndash;&gt;-->
-
 <style>
     .product-card {
         width: 150px;
@@ -168,7 +150,7 @@
                         <div class="form-text">Если оставить пустым, заказ будет оформлен для вас</div>
                     </div>
 
-                    <!-- ЕДИНАЯ КНОПКА ОФОРМЛЕНИЯ -->
+                    <!-- Единная кнопка офомрления -->
                     <div class="text-center mt-4">
                         <button type="submit" class="btn btn-success btn-lg px-5 py-3">
                             <span class="fs-4">✅</span>
